@@ -25,15 +25,19 @@ class TextLoader():
         self.reset_batch_pointer()
 
     def preprocess(self, input_file, vocab_file, tensor_file):
-        with codecs.open(input_file, "r", encoding=self.encoding) as f:
+        with codecs.open(input_file, "r", encoding=self.encoding, errors='ignore') as f:
             data = f.read()
+        # counter is a map from characters to its frequency
         counter = collections.Counter(data)
+        # count_pairs is sorted by frequency then lexicographically
         count_pairs = sorted(counter.items(), key=lambda x: -x[1])
         self.chars, _ = zip(*count_pairs)
         self.vocab_size = len(self.chars)
+        # vocab is a map from a character to a unique id
         self.vocab = dict(zip(self.chars, range(len(self.chars))))
         with open(vocab_file, 'wb') as f:
             cPickle.dump(self.chars, f)
+        # tensor is the text converted to ids given by mapping of vocab
         self.tensor = np.array(list(map(self.vocab.get, data)))
         np.save(tensor_file, self.tensor)
 
